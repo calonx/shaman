@@ -13,6 +13,7 @@ add_executable (ProqMon "ProqMon.cpp" "ProqMon.h" "MainWidget.cpp" "MainWidget.h
 # TODO: Add tests and install targets if needed.
 
 include_directories("$ENV{QT_PATH}/include")
+include_directories("C:/GitHub/rapidjson/include")
 # link_directories("$ENV{QT_PATH}/lib")
 
 # find_package(zlib REQUIRED)

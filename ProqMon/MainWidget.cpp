@@ -12,7 +12,7 @@ MainWidget::MainWidget(QWidget* parent) :
 
 	QGridLayout* layout = new QGridLayout();
 	layout->addWidget(button_, 0, 0);
-	layout->addWidget(textBrowser_, 0, 0);
+	layout->addWidget(textBrowser_, 1, 0);
 	setLayout(layout);
 	setWindowTitle(tr("Initializing..."));
 }
