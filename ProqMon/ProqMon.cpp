@@ -7,6 +7,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QLayout>
 #include <QtWidgets/QTreeView>
+#include <QtTest/QAbstractItemModelTester.h>
 
 #include <rapidjson/document.h>
 
@@ -92,17 +93,62 @@ void LogLine(const char* fmt, ...)
 	va_end(args);
 }
 
-QString kEventColumns[] =
+enum Visibility
 {
-  QStringLiteral("Detail"),
-  QStringLiteral("Operation"),
-  QStringLiteral("PID"),
-  QStringLiteral("Path"),
-  QStringLiteral("ProcessIndex"),
-  QStringLiteral("Process_Name"),
-  QStringLiteral("Result"),
-  QStringLiteral("Time_of_Day"),
+	kHide,
+	kShow,
 };
+
+enum class EventColumns
+{
+	kDetail,
+	kOperation,
+	kPid,
+	kPath,
+	kProcessIndex,
+	kProcessName,
+	kResult,
+	kTimeOfDay,
+
+	kItemCount
+};
+
+QString GetEventColumnLabel(EventColumns column)
+{
+	switch (column)
+	{
+		case EventColumns::kDetail:       return QStringLiteral("Detail");
+		case EventColumns::kOperation:    return QStringLiteral("Operation");
+		case EventColumns::kPid:          return QStringLiteral("PID");
+		case EventColumns::kPath:         return QStringLiteral("Path");
+		case EventColumns::kProcessIndex: return QStringLiteral("ProcessIndex");
+		case EventColumns::kProcessName:  return QStringLiteral("Process_Name");
+		case EventColumns::kResult:       return QStringLiteral("Result");
+		case EventColumns::kTimeOfDay:    return QStringLiteral("Time_of_Day");
+	}
+	return QStringLiteral("<unknown>");
+}
+
+struct EventColumn
+{
+	Visibility visibility;
+	EventColumns columnId;
+	QString label = QStringLiteral("<unknown>");
+};
+
+EventColumn s_EventColumns[] =
+{
+	{ kShow, EventColumns::kTimeOfDay,    GetEventColumnLabel(EventColumns::kTimeOfDay) },
+	{ kShow, EventColumns::kProcessName,  GetEventColumnLabel(EventColumns::kProcessName) },
+	{ kShow, EventColumns::kOperation,    GetEventColumnLabel(EventColumns::kOperation) },
+	{ kShow, EventColumns::kResult,       GetEventColumnLabel(EventColumns::kResult) },
+	{ kShow, EventColumns::kPid,          GetEventColumnLabel(EventColumns::kPid) },
+	{ kShow, EventColumns::kDetail,       GetEventColumnLabel(EventColumns::kDetail) },
+	{ kShow, EventColumns::kPath,         GetEventColumnLabel(EventColumns::kPath) },
+	{ kHide, EventColumns::kProcessIndex, GetEventColumnLabel(EventColumns::kProcessIndex) },
+};
+
+
 
 QString kModuleColumns[] =
 {
@@ -115,55 +161,110 @@ QString kModuleColumns[] =
   QStringLiteral("Version"),
 };
 
-QString kProcessColumns[] =
-{
-	QStringLiteral("ProcessName"),
-	QStringLiteral("ImagePath"),
-	QStringLiteral("CommandLine"),
-	QStringLiteral("CreateTime"),
-	QStringLiteral("Description"),
-	QStringLiteral("FinishTime"),
-	QStringLiteral("Integrity"),
-	QStringLiteral("Is64bit"),
-	QStringLiteral("IsVirtualized"),
-	QStringLiteral("Owner"),
-	QStringLiteral("ParentProcessId"),
-	QStringLiteral("ParentProcessIndex"),
-	QStringLiteral("ProcessId"),
-	QStringLiteral("ProcessIndex"),
-	QStringLiteral("Version"),
-	QStringLiteral("CompanyName"),
-	QStringLiteral("AuthenticationId"),
-};
-	//QList<Module> modulelist;
 
-class ProcessItem
+
+enum class ProcessColumns
 {
-	//	QString m_Cols[std::size(kProcessColumns)];
+	kProcessName,
+	kImagePath,
+	kCommandLine,
+	kCreateTime,
+	kDescription,
+	kFinishTime,
+	kIntegrity,
+	kIs64bit,
+	kIsVirtualized,
+	kOwner,
+	kParentProcessId,
+	kParentProcessIndex,
+	kProcessId,
+	kProcessIndex,
+	kVersion,
+	kCompanyName,
+	kAuthenticationId,
+
+	kItemCount
+};
+
+QString GetProcessColumnLabel(ProcessColumns column)
+{
+	switch (column)
+	{
+		case ProcessColumns::kProcessName:               return QStringLiteral("ProcessName");
+		case ProcessColumns::kImagePath:                 return QStringLiteral("ImagePath");
+		case ProcessColumns::kCommandLine:               return QStringLiteral("CommandLine");
+		case ProcessColumns::kCreateTime:                return QStringLiteral("CreateTime");
+		case ProcessColumns::kDescription:               return QStringLiteral("Description");
+		case ProcessColumns::kFinishTime:                return QStringLiteral("FinishTime");
+		case ProcessColumns::kIntegrity:                 return QStringLiteral("Integrity");
+		case ProcessColumns::kIs64bit:                   return QStringLiteral("Is64bit");
+		case ProcessColumns::kIsVirtualized:             return QStringLiteral("IsVirtualized");
+		case ProcessColumns::kOwner:                     return QStringLiteral("Owner");
+		case ProcessColumns::kParentProcessId:           return QStringLiteral("ParentProcessId");
+		case ProcessColumns::kParentProcessIndex:        return QStringLiteral("ParentProcessIndex");
+		case ProcessColumns::kProcessId:                 return QStringLiteral("ProcessId");
+		case ProcessColumns::kProcessIndex:              return QStringLiteral("ProcessIndex");
+		case ProcessColumns::kVersion:                   return QStringLiteral("Version");
+		case ProcessColumns::kCompanyName:               return QStringLiteral("CompanyName");
+		case ProcessColumns::kAuthenticationId:          return QStringLiteral("AuthenticationId");
+	}
+	return QStringLiteral("<unknown>");
+}
+
+struct ProcessColumn
+{
+	Visibility visibility;
+	ProcessColumns columnId;
+	QString label = QStringLiteral("<unknown>");
+};
+
+ProcessColumn s_ProcessColumns[] =
+{
+	{ kShow, ProcessColumns::kProcessName,         GetProcessColumnLabel(ProcessColumns::kProcessName) },
+	{ kShow, ProcessColumns::kImagePath,           GetProcessColumnLabel(ProcessColumns::kImagePath) },
+	{ kShow, ProcessColumns::kCommandLine,         GetProcessColumnLabel(ProcessColumns::kCommandLine) },
+	{ kHide, ProcessColumns::kCreateTime,          GetProcessColumnLabel(ProcessColumns::kCreateTime) },
+	{ kShow, ProcessColumns::kDescription,         GetProcessColumnLabel(ProcessColumns::kDescription) },
+	{ kHide, ProcessColumns::kFinishTime,          GetProcessColumnLabel(ProcessColumns::kFinishTime) },
+	{ kHide, ProcessColumns::kIntegrity,           GetProcessColumnLabel(ProcessColumns::kIntegrity) },
+	{ kHide, ProcessColumns::kIs64bit,             GetProcessColumnLabel(ProcessColumns::kIs64bit) },
+	{ kHide, ProcessColumns::kIsVirtualized,       GetProcessColumnLabel(ProcessColumns::kIsVirtualized) },
+	{ kShow, ProcessColumns::kOwner,               GetProcessColumnLabel(ProcessColumns::kOwner) },
+	{ kShow, ProcessColumns::kParentProcessId,     GetProcessColumnLabel(ProcessColumns::kParentProcessId) },
+	{ kHide, ProcessColumns::kParentProcessIndex,  GetProcessColumnLabel(ProcessColumns::kParentProcessIndex) },
+	{ kShow, ProcessColumns::kProcessId,           GetProcessColumnLabel(ProcessColumns::kProcessId) },
+	{ kHide, ProcessColumns::kProcessIndex,        GetProcessColumnLabel(ProcessColumns::kProcessIndex) },
+	{ kHide, ProcessColumns::kVersion,             GetProcessColumnLabel(ProcessColumns::kVersion) },
+	{ kHide, ProcessColumns::kCompanyName,         GetProcessColumnLabel(ProcessColumns::kCompanyName) },
+	{ kHide, ProcessColumns::kAuthenticationId,    GetProcessColumnLabel(ProcessColumns::kAuthenticationId) },
+};
+
+class TreeItem
+{
 	QVector<QVariant> m_Cols;
-	QVector<ProcessItem*> m_childItems;
-	ProcessItem* m_parentItem;
+	QVector<TreeItem*> m_childItems;
+	TreeItem* m_parentItem;
 
 public:
-	explicit ProcessItem(const QVector<QVariant>& data, ProcessItem* parent)
+	explicit TreeItem(const QVector<QVariant>& data, TreeItem* parent)
 		: m_Cols(data), m_parentItem(parent)
 	{}
 
-	explicit ProcessItem(QVector<QVariant>&& data, ProcessItem* parent)
+	explicit TreeItem(QVector<QVariant>&& data, TreeItem* parent)
 		: m_Cols(std::move(data)), m_parentItem(parent)
 	{}
 
-	~ProcessItem()
+	~TreeItem()
 	{
 		qDeleteAll(m_childItems);
 	}
 
-	void appendChild(ProcessItem* item)
+	void appendChild(TreeItem* item)
 	{
 		m_childItems.append(item);
 	}
 
-	ProcessItem* child(int row)
+	TreeItem* child(int row)
 	{
 		if (row < 0 || row >= m_childItems.size())
 			return nullptr;
@@ -187,7 +288,7 @@ public:
 		return m_Cols.at(column);
 	}
 
-	ProcessItem* parentItem()
+	TreeItem* parentItem()
 	{
 		return m_parentItem;
 	}
@@ -195,23 +296,23 @@ public:
 	int row() const
 	{
 		if (m_parentItem)
-			return m_parentItem->m_childItems.indexOf(const_cast<ProcessItem*>(this));
+			return m_parentItem->m_childItems.indexOf(const_cast<TreeItem*>(this));
 
 		return 0;
 	}
 };
 
-class ProcessModel : public QAbstractItemModel
+class TreeModel : public QAbstractItemModel
 {
 public:
 	using Super = QAbstractItemModel;
 
-	ProcessModel();
-	~ProcessModel() override;
+	TreeModel(QVector<QVariant>&& cols);
+	~TreeModel() override;
 
-	ProcessItem* appendItem(QVector<QVariant>&& cols)
+	TreeItem* appendItem(QVector<QVariant>&& cols)
 	{
-		ProcessItem* item = new ProcessItem(std::move(cols), m_rootItem);
+		TreeItem* item = new TreeItem(std::move(cols), m_rootItem);
 		m_rootItem->appendChild(item);
 		return item;
 	}
@@ -228,51 +329,45 @@ protected:
 	Qt::ItemFlags flags(const QModelIndex& index) const override;
 	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
-	//struct ProcessEntry
-	//{
-	//};
-	//QVector<ProcessEntry> m_Rows;
-	ProcessItem* m_rootItem;
+	TreeItem* m_rootItem;
 };
 
-ProcessModel::ProcessModel() :
+TreeModel::TreeModel(QVector<QVariant>&& cols) :
 	Super()
 {
-	QVector<QVariant> cols;
-	for (const QString& s : kProcessColumns)
-		cols.append(s);
-	m_rootItem = new ProcessItem(std::move(cols), nullptr);
+	m_rootItem = new TreeItem(std::move(cols), nullptr);
 }
 
-ProcessModel::~ProcessModel()
+TreeModel::~TreeModel()
 {
 	delete m_rootItem;
 }
 
-QModelIndex ProcessModel::index(int row, int column, const QModelIndex& parent) const
+QModelIndex TreeModel::index(int row, int column, const QModelIndex& parent) const
 {
 	if (!hasIndex(row, column, parent))
 		return QModelIndex();
 
-	ProcessItem* parentItem;
+	TreeItem* parentItem;
 
 	if (!parent.isValid())
 		parentItem = m_rootItem;
 	else
-		parentItem = static_cast<ProcessItem*>(parent.internalPointer());
+		parentItem = static_cast<TreeItem*>(parent.internalPointer());
 
-	ProcessItem* childItem = parentItem->child(row);
+	TreeItem* childItem = parentItem->child(row);
 	if (childItem)
 		return createIndex(row, column, childItem);
 	return QModelIndex();
 }
-QModelIndex ProcessModel::parent(const QModelIndex& index) const
+
+QModelIndex TreeModel::parent(const QModelIndex& index) const
 {
 	if (!index.isValid())
 		return QModelIndex();
 
-	ProcessItem* childItem = static_cast<ProcessItem*>(index.internalPointer());
-	ProcessItem* parentItem = childItem->parentItem();
+	TreeItem* childItem = static_cast<TreeItem*>(index.internalPointer());
+	TreeItem* parentItem = childItem->parentItem();
 
 	if (parentItem == m_rootItem)
 		return QModelIndex();
@@ -280,28 +375,28 @@ QModelIndex ProcessModel::parent(const QModelIndex& index) const
 	return createIndex(parentItem->row(), 0, parentItem);
 }
 
-int ProcessModel::rowCount(const QModelIndex& parent) const
+int TreeModel::rowCount(const QModelIndex& parent) const
 {
-	ProcessItem* parentItem;
+	TreeItem* parentItem;
 	if (parent.column() > 0)
 		return 0;
 
 	if (!parent.isValid())
 		parentItem = m_rootItem;
 	else
-		parentItem = static_cast<ProcessItem*>(parent.internalPointer());
+		parentItem = static_cast<TreeItem*>(parent.internalPointer());
 
 	return parentItem->childCount();
 }
 
-int ProcessModel::columnCount(const QModelIndex& parent) const
+int TreeModel::columnCount(const QModelIndex& parent) const
 {
 	if (parent.isValid())
-		return static_cast<ProcessItem*>(parent.internalPointer())->columnCount();
+		return static_cast<TreeItem*>(parent.internalPointer())->columnCount();
 	return m_rootItem->columnCount();
 }
 
-QVariant ProcessModel::data(const QModelIndex& index, int role) const
+QVariant TreeModel::data(const QModelIndex& index, int role) const
 {
 	if (!index.isValid())
 		return QVariant();
@@ -309,12 +404,12 @@ QVariant ProcessModel::data(const QModelIndex& index, int role) const
 	if (role != Qt::DisplayRole)
 		return QVariant();
 
-	ProcessItem* item = static_cast<ProcessItem*>(index.internalPointer());
+	TreeItem* item = static_cast<TreeItem*>(index.internalPointer());
 
 	return item->data(index.column());
 }
 
-Qt::ItemFlags ProcessModel::flags(const QModelIndex& index) const
+Qt::ItemFlags TreeModel::flags(const QModelIndex& index) const
 {
 	if (!index.isValid())
 		return Qt::NoItemFlags;
@@ -322,11 +417,10 @@ Qt::ItemFlags ProcessModel::flags(const QModelIndex& index) const
 	return QAbstractItemModel::flags(index);
 }
 
-QVariant ProcessModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant TreeModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-	if (orientation == Qt::Horizontal && role == Qt::DisplayRole)// && section < std::size(kProcessColumns))
+	if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
 		return m_rootItem->data(section);
-	//return QVariant(kProcessColumns[section]);
 
 	return QVariant();
 }
@@ -354,14 +448,12 @@ int main(int argc, char** argv)
 
 	QByteArray file_data = file.readAll();
 
-	LogLine("%s\n", QStringRef(&QString(file_data), 0, 100).toString().toUtf8().constData());
+	//LogLine("%s\n", QStringRef(&QString(file_data), 0, 100).toString().toUtf8().constData());
 
 	rapidjson::Document doc;
 	doc.Parse(QString(file_data).toUtf8().constData());
 
-	LogLine("%d\n", doc.GetType());
-
-	ProcessModel model;
+	//LogLine("%d\n", doc.GetType());
 	
 	auto obj_root = doc.GetObject();
 	auto obj_procmon = obj_root.FindMember("procmon")->value.GetObject();
@@ -369,72 +461,107 @@ int main(int argc, char** argv)
 	auto obj_processlist = obj_procmon.FindMember("processlist")->value.GetObject();
 
 	auto arr_process = obj_processlist.FindMember("process")->value.GetArray();
+	auto arr_event = obj_eventlist.FindMember("event")->value.GetArray();
 
-	struct Handler
-	{
-		QSet<QString> seen;
-		QList<QString> stack;
+	//struct Handler
+	//{
+	//	QSet<QString> seen;
+	//	QList<QString> stack;
 
-		void Cache(const QString& leaf)
-		{
-			stack.append(leaf);
-			QStringList strings(stack);
-			QString combined = strings.join('.');
-			seen.insert(combined);
-			stack.pop_back();
-		};
+	//	void Cache(const QString& leaf)
+	//	{
+	//		stack.append(leaf);
+	//		QStringList strings(stack);
+	//		QString combined = strings.join('.');
+	//		seen.insert(combined);
+	//		stack.pop_back();
+	//	};
 
-		bool Null() { Cache(QStringLiteral("Null")); return true; }
-		bool Bool(bool b) { Cache(QStringLiteral("Bool")); return true; }
-		bool Int(int i) { Cache(QStringLiteral("Int")); return true; }
-		bool Uint(unsigned i) { Cache(QStringLiteral("Uint")); return true; }
-		bool Int64(int64_t i) { Cache(QStringLiteral("Int64")); return true; }
-		bool Uint64(uint64_t i) { Cache(QStringLiteral("Uint64")); return true; }
-		bool Double(double d) { Cache(QStringLiteral("Double")); return true; }
-		bool RawNumber(const char* str, size_t length, bool copy) { Cache(QStringLiteral("RawNumber")); return true; }
-		bool String(const char* str, size_t length, bool copy) { Cache(QStringLiteral("String")); return true; }
-		bool StartObject() { stack.push_back("???"); return true; }
-		bool Key(const char* str, size_t length, bool copy) { stack.last() = QString(str); return true; }
-		bool EndObject(size_t memberCount) { stack.pop_back(); return true; }
-		bool StartArray() { stack.append(QStringLiteral("[]")); return true; }
-		bool EndArray(size_t elementCount) { stack.pop_back(); return true; }
-	};
+	//	bool Null() { Cache(QStringLiteral("Null")); return true; }
+	//	bool Bool(bool b) { Cache(QStringLiteral("Bool")); return true; }
+	//	bool Int(int i) { Cache(QStringLiteral("Int")); return true; }
+	//	bool Uint(unsigned i) { Cache(QStringLiteral("Uint")); return true; }
+	//	bool Int64(int64_t i) { Cache(QStringLiteral("Int64")); return true; }
+	//	bool Uint64(uint64_t i) { Cache(QStringLiteral("Uint64")); return true; }
+	//	bool Double(double d) { Cache(QStringLiteral("Double")); return true; }
+	//	bool RawNumber(const char* str, size_t length, bool copy) { Cache(QStringLiteral("RawNumber")); return true; }
+	//	bool String(const char* str, size_t length, bool copy) { Cache(QStringLiteral("String")); return true; }
+	//	bool StartObject() { stack.push_back("???"); return true; }
+	//	bool Key(const char* str, size_t length, bool copy) { stack.last() = QString(str); return true; }
+	//	bool EndObject(size_t memberCount) { stack.pop_back(); return true; }
+	//	bool StartArray() { stack.append(QStringLiteral("[]")); return true; }
+	//	bool EndArray(size_t elementCount) { stack.pop_back(); return true; }
+	//};
 
-	Handler handler;
-	doc.Accept(handler);
+	QVector<QVariant> process_cols;
+	for (const ProcessColumn& col : s_ProcessColumns)
+		process_cols.append(col.label);
+	TreeModel process_model(std::move(process_cols));
 
-	QList<QString> seen_sorted = handler.seen.values();
-	seen_sorted.sort();
-	for (const QString& s : seen_sorted)
-	{
-		LogLine("%s", s.toUtf8().constData());
-	}
+	QVector<QVariant> event_cols;
+	for (const EventColumn& col : s_EventColumns)
+		event_cols.append(col.label);
+	TreeModel event_model(std::move(event_cols));
+
+	//Handler handler;
+	//doc.Accept(handler);
+
+	//QList<QString> seen_sorted = handler.seen.values();
+	//seen_sorted.sort();
+	//for (const QString& s : seen_sorted)
+	//{
+	//	LogLine("%s", s.toUtf8().constData());
+	//}
+
 	for (auto& v : arr_process)
 	{
 		QVector<QVariant> props;
-		for (auto& col_name : kProcessColumns)
+		for (const auto& col : s_ProcessColumns)
 		{
-			auto m = v.FindMember(col_name.toUtf8().constData());
+			auto m = v.FindMember(col.label.toUtf8().constData());
 			if (m != v.MemberEnd())
 				props.push_back(QString(m->value.GetString()));
 			else
 				props.push_back(QVariant());
 		}
-		model.appendItem(std::move(props));
+		process_model.appendItem(std::move(props));
 	}
 
-	//return 0;
+	for (auto& v : arr_event)
+	{
+		QVector<QVariant> props;
+		for (const auto& col : s_EventColumns)
+		{
+			auto m = v.FindMember(col.label.toUtf8().constData());
+			if (m != v.MemberEnd())
+				props.push_back(QString(m->value.GetString()));
+			else
+				props.push_back(QVariant());
+		}
+		event_model.appendItem(std::move(props));
+	}
 
 	// Creates an instance of QApplication
 	QApplication a(argc, argv);
 
-	// This is our MainWidget class containing our GUI and functionality
-	//MainWidget w;
-	//w.show(); // Show main window
-
 	QTreeView tree;
-	tree.setModel(&model);
+	tree.setUniformRowHeights(true);
 	tree.setWindowTitle(QObject::tr("ProqMon"));
+
+	//tree.setModel(&process_model);
+	//for (int i = 0; i < std::size(s_ProcessColumns); ++i)
+	//{
+	//	tree.setColumnHidden(i, s_ProcessColumns[i].visibility == kHide);
+	//}
+
+	//new QAbstractItemModelTester(&event_model, QAbstractItemModelTester::FailureReportingMode::Fatal, &tree);
+
+	tree.setModel(&event_model);
+	for (int i = 0; i < std::size(s_EventColumns); ++i)
+	{
+		tree.setColumnHidden(i, s_EventColumns[i].visibility == kHide);
+	}
+
 	tree.show();
 
 	// run the application and return execs() return value/code
