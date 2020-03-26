@@ -3,8 +3,8 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project ("ProqMon")
+project ("shaman")
 
 # Include sub-projects.
-add_subdirectory ("ProqMon")
+add_subdirectory ("shaman")
 
