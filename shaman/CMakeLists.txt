@@ -37,10 +37,6 @@ add_executable (
     "MainWidget.h"
     "TreeModel.h"
     "TreeModel.cpp"
-    "QService/qtservice.cpp"
-    "QService/qtservice_win.cpp"
-    "QService/qtservice.h"
-    "QService/qtservice_p.h"
 )
 
 target_link_libraries(shaman PRIVATE ${Qt5Core_LIBRARIES} ${Qt5Widgets_LIBRARIES} ${Qt5Test_LIBRARIES})
