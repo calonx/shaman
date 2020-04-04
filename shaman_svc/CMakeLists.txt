@@ -12,12 +12,18 @@ set(Qt5Core_DIR     C:/GitHub/qt5/qtbase/lib/cmake/Qt5Core      CACHE FILEPATH "
 
 include_directories("$ENV{QT_PATH}/include")
 
+find_package(ZeroMQ CONFIG REQUIRED)
+find_package(czmq   CONFIG REQUIRED)
 find_package(Qt5 COMPONENTS Core REQUIRED)
 
 # Add source to this project's executable.
 add_executable (
     shaman_svc
-    "main.cpp"
+    "Main.cpp"
+    "SimpleService.cpp"
+    "SimpleService.h"
 )
 
 target_link_libraries(shaman_svc PRIVATE ${Qt5Core_LIBRARIES})
+target_link_libraries(shaman_svc PRIVATE libzmq libzmq-static)
+target_link_libraries(shaman_svc PRIVATE czmq czmq-static)
