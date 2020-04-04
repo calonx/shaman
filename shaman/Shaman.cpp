@@ -28,11 +28,36 @@ static int s_send(void* socket, char* string)
 	return size;
 }
 
+static bool s_Quit = false;
+
+int WINAPI CtrlHandler(DWORD fdwCtrlType)
+{
+	switch (fdwCtrlType)
+	{
+	case CTRL_C_EVENT:
+		printf("Ctrl-C event\n\n");
+		s_Quit = true;
+		return true;
+
+	case CTRL_CLOSE_EVENT:
+		printf("Ctrl-Close event\n\n");
+		s_Quit = true;
+		return true;
+	}
+	return false;
+}
+
 int main(int argc, char** argv)
 {
+	//if (!SetConsoleCtrlHandler(CtrlHandler, true))
+	//{
+	//	printf("Failed to set CtrlHandler\n");
+	//	return -1;
+	//}
+
 	zsock_t* bcast = zsock_new_sub("tcp://localhost:4007", "");
 
-	while (true)
+	while (!s_Quit)
 	{
 		if (char* msg = zstr_recv(bcast))
 		{

@@ -5,6 +5,8 @@ Copyright (c) 2016 Microsoft Corporation
 
 #pragma once
 
+#if false
+
 #include <string>
 
 #include <windows.h>
@@ -87,3 +89,5 @@ protected:
     SERVICE_STATUS_HANDLE m_StatusHandle;
     SERVICE_STATUS        m_StatusObject;
 };
+
+#endif // false

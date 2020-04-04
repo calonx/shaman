@@ -6,6 +6,7 @@ Copyright (c) 2016 Microsoft Corporation
 #include "SimpleService.h"
 #include <assert.h>
 
+#if false
 class ScopeCritical
 {
 public:
@@ -195,3 +196,4 @@ void Service::HintTime(DWORD msec)
     ::SetServiceStatus(m_StatusHandle, &m_StatusObject);
     m_StatusObject.dwWaitHint = 0; // won't apply after the next update
 }
+#endif // false
