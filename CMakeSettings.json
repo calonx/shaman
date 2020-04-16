@@ -1,26 +1,21 @@
-{
-  // The "environments" property is an array of key value pairs of the form
-  // { "EnvVar1": "Value1", "EnvVar2": "Value2" }
-  "environments": [
-    {
-      "BuildDir": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build"
-    }
-  ],
-
+﻿{
+  "environments": [ { "BuildDir": "C:\\CMakeBuilds\\${workspaceHash}\\build" } ],
   "configurations": [
     {
-      "name": "x64-Debug",
-      "generator": "Visual Studio 15 2017",
+      "name": "x64-Remote",
+      "generator": "Visual Studio 16 2019 Win64",
       "configurationType": "Debug",
-      "buildRoot": "${env.LOCALAPPDATA}\\CMakeBuild\\${workspaceHash}\\build\\${name}",
+      "buildRoot": "C:\\CMakeBuild\\${workspaceHash}\\build\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-m -v:minimal",
       "variables": [
         {
           "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": "C:\\GitHub\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake"
+          "value": "C:\\GitHub\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+          "type": "STRING"
         }
-      ]
+      ],
+      "inheritEnvironments": [ "msvc_x64" ]
     }
   ]
 }

@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 	//	return -1;
 	//}
 
-	zsock_t* bcast = zsock_new_sub("tcp://localhost:4007", "");
+	zsock_t* bcast = zsock_new_sub("tcp://bitsrv:4007", "");
 
 	while (!s_Quit)
 	{

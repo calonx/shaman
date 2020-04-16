@@ -18,10 +18,10 @@ find_package(Qt5 COMPONENTS Core REQUIRED)
 
 # Add source to this project's executable.
 add_executable (
-    shaman_svc
+    shaman_broker
     "Main.cpp"
 )
 
-target_link_libraries(shaman_svc PRIVATE ${Qt5Core_LIBRARIES})
-target_link_libraries(shaman_svc PRIVATE libzmq libzmq-static)
-target_link_libraries(shaman_svc PRIVATE czmq czmq-static)
+target_link_libraries(shaman_broker PRIVATE ${Qt5Core_LIBRARIES})
+target_link_libraries(shaman_broker PRIVATE libzmq libzmq-static)
+target_link_libraries(shaman_broker PRIVATE czmq czmq-static)
